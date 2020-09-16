@@ -151,6 +151,19 @@ void q_reverse(queue_t *q)
 {
     /* TODO: You need to write the code for this function */
     /* TODO: Remove the above comment when you are about to implement. */
+    if (!q || !q->head)
+        return;
+    list_ele_t *curr, *pre, *nxt;
+    curr = q->head;
+    pre = NULL;
+    q->head = q->tail;
+    q->tail = curr;
+    while (curr) {
+        nxt = curr->next;
+        curr->next = pre;
+        pre = curr;
+        curr = nxt;
+    }
 }
 
 /*
