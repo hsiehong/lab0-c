@@ -53,10 +53,16 @@ bool q_insert_head(queue_t *q, char *s)
     list_ele_t *newh;
     /* TODO: What should you do if the q is NULL? */
     newh = malloc(sizeof(list_ele_t));
-    if (newh == NULL)
+    if (newh == NULL) {
+        free(newh);
         return false;
+    }
     int len = strlen(s) + 1;
     newh->value = (char *) malloc(len * sizeof(char));
+    if (!newh->value) {
+        free(newh);
+        return false;
+    }
     strncpy(newh->value, s, len);
     newh->value[len - 1] = '\0';
     /* Don't forget to allocate space for the string and copy it */
@@ -85,10 +91,16 @@ bool q_insert_tail(queue_t *q, char *s)
         return false;
     list_ele_t *newt;
     newt = malloc(sizeof(list_ele_t));
-    if (newt == NULL)
+    if (!newt) {
+        free(newt);
         return false;
+    }
     size_t len = strlen(s) + 1;
     newt->value = (char *) malloc(len * sizeof(char));
+    if (!newt->value) {
+        free(newt);
+        return false;
+    }
     strncpy(newt->value, s, len);
     newt->value[len - 1] = '\0';
     newt->next = NULL;
@@ -175,4 +187,46 @@ void q_sort(queue_t *q)
 {
     /* TODO: You need to write the code for this function */
     /* TODO: Remove the above comment when you are about to implement. */
+    if (!q || q->size == 1)
+        return;
+    // implement using bubble sort
+    /*for (list_ele_t *i = q->head; i->next; i = i->next) {
+        for (list_ele_t *j = i, *prej = i; j->next; j = j->next){
+            if (strcmp(j->value, j->next->value) > 0) {
+                swap(prej, j, j->next);
+            }
+        }
+    } */
+    // bubble sort
+    list_ele_t *curr, *pre, *tmp, *tail;
+    tail = NULL;
+    while (q->head != q->tail) {
+        curr = pre = q->head;
+        while (curr && curr->next && curr->next != tail) {
+            if (strcmp(curr->value, curr->next->value) > 0) {
+                tmp = curr->next;
+                curr->next = tmp->next;
+                tmp->next = curr;
+                if (curr == q->head) {
+                    q->head = tmp;
+                    pre = tmp;
+                } else {
+                    pre->next = tmp;
+                    pre = pre->next;
+                }
+            } else {
+                if (curr != q->head)
+                    pre = pre->next;
+                curr = curr->next;
+            }
+        }
+        tail = curr;
+    }
 }
+
+/*void swap(list_ele_t *pre, list_ele_t *curr, list_ele_t *nxt)
+{
+    pre->next = nxt;
+    curr->next = nxt->next;
+    nxt->next = curr;
+}*/
