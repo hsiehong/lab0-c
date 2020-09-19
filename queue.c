@@ -118,6 +118,8 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
         return false;
     if (q->head->value)
         strncpy(sp, q->head->value, bufsize);
+    else
+        return false;
     list_ele_t *tmp = q->head;
     q->head = q->head->next;
     free(tmp->value);
@@ -167,34 +169,60 @@ void q_reverse(queue_t *q)
  * No effect if q is NULL or empty. In addition, if q has only one
  * element, do nothing.
  */
+/*
+    return new head of two linked list
+*/
+list_ele_t *merge_2_list(list_ele_t *l1, list_ele_t *l2)
+{
+    list_ele_t *n_head = NULL;
+    list_ele_t **tmp = &n_head;
+    while (l1 && l2) {
+        if (strcmp(l1->value, l2->value) > 0) {
+            *tmp = l2;
+            l2 = l2->next;
+        } else {
+            *tmp = l1;
+            l1 = l1->next;
+        }
+        tmp = &((*tmp)->next);
+    }
+    if (l1)
+        *tmp = l1;
+    else
+        *tmp = l2;
+    return n_head;
+}
+
+list_ele_t *merge_sort(list_ele_t *head)
+{
+    if (!head || !head->next)
+        return head;
+    list_ele_t *fast, *slow;
+    fast = head->next;
+    slow = head;
+    // split list into 2 half list
+    while (fast && fast->next) {
+        fast = fast->next->next;
+        slow = slow->next;
+    }
+    fast = slow->next;
+    slow->next = NULL;
+    slow = head;
+
+    list_ele_t *left = merge_sort(slow);
+    list_ele_t *right = merge_sort(fast);
+
+    return merge_2_list(left, right);
+}
+
 void q_sort(queue_t *q)
 {
-    if (!q || q->size == 1)
+    if (!q || q->size <= 1)
         return;
+    // sorting by merge sort
+    q->head = merge_sort(q->head);
 
-    // bubble sort
-    list_ele_t *curr, *pre, *tmp, *tail;
-    tail = NULL;
-    while (q->head != q->tail) {
-        curr = pre = q->head;
-        while (curr && curr->next && curr->next != tail) {
-            if (strcmp(curr->value, curr->next->value) > 0) {
-                tmp = curr->next;
-                curr->next = tmp->next;
-                tmp->next = curr;
-                if (curr == q->head) {
-                    q->head = tmp;
-                    pre = tmp;
-                } else {
-                    pre->next = tmp;
-                    pre = pre->next;
-                }
-            } else {
-                if (curr != q->head)
-                    pre = pre->next;
-                curr = curr->next;
-            }
-        }
-        tail = curr;
-    }
+    q->tail = q->head;
+    while (q->tail && q->tail->next)
+        q->tail = q->tail->next;
 }
